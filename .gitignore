@@ -51,4 +51,16 @@ prompt
 
 server.log
 # Skills directory
-/skills/
+/skills/# Skills and dev tools (not needed for production)
+skills/
+.zscripts/
+agent-ctx/
+examples/
+Caddyfile
+db/
+mini-services/
+upload/
+dev.log
+worklog.md
+bun.lock
+.env
