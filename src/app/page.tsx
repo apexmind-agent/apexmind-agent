@@ -8,47 +8,39 @@ import { LeadsDatabase } from '@/components/leads-database'
 import { EmailGenerator } from '@/components/email-generator'
 import { FollowUps } from '@/components/follow-ups'
 import { SentEmails } from '@/components/sent-emails'
-import { ErrorBoundary } from '@/components/error-boundary'
 import { Menu, Zap } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
-import { useT } from '@/lib/i18n'
+import { motion, AnimatePresence } from 'framer-motion'
 
-const TAB_TITLES: Record<string, { 'pt-BR': string; 'en': string }> = {
-  dashboard: { 'pt-BR': 'Painel', 'en': 'Dashboard' },
-  prospecting: { 'pt-BR': 'Prospecção IA', 'en': 'AI Prospecting' },
-  leads: { 'pt-BR': 'Banco de Leads', 'en': 'Leads Database' },
-  emails: { 'pt-BR': 'Gerador de E-mails', 'en': 'Email Generator' },
-  followups: { 'pt-BR': 'Follow-ups', 'en': 'Follow-ups' },
-  sent: { 'pt-BR': 'E-mails Enviados', 'en': 'Sent Emails' },
+const TAB_TITLES: Record<string, string> = {
+  dashboard: 'Dashboard',
+  prospecting: 'AI Prospecting',
+  leads: 'Leads Database',
+  emails: 'Email Generator',
+  followups: 'Follow-ups',
+  sent: 'Sent Emails',
 }
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState('dashboard')
-  const { t, language } = useT()
-
-  const getTabTitle = (tab: string) => {
-    const entry = TAB_TITLES[tab]
-    if (!entry) return tab
-    return entry[language] || entry['en'] || tab
-  }
 
   const renderContent = () => {
     switch (activeTab) {
       case 'dashboard':
-        return <ErrorBoundary><Dashboard /></ErrorBoundary>
+        return <Dashboard />
       case 'prospecting':
-        return <ErrorBoundary><Prospecting /></ErrorBoundary>
+        return <Prospecting />
       case 'leads':
-        return <ErrorBoundary><LeadsDatabase /></ErrorBoundary>
+        return <LeadsDatabase />
       case 'emails':
-        return <ErrorBoundary><EmailGenerator /></ErrorBoundary>
+        return <EmailGenerator />
       case 'followups':
-        return <ErrorBoundary><FollowUps /></ErrorBoundary>
+        return <FollowUps />
       case 'sent':
-        return <ErrorBoundary><SentEmails /></ErrorBoundary>
+        return <SentEmails />
       default:
-        return <ErrorBoundary><Dashboard /></ErrorBoundary>
+        return <Dashboard />
     }
   }
 
@@ -78,15 +70,15 @@ export default function Home() {
               </Sheet>
 
               <div>
-                <h1 className="text-lg font-bold">{getTabTitle(activeTab)}</h1>
-                <p className="text-xs text-muted-foreground">ApexMind {t('sidebar.aiAgent')}</p>
+                <h1 className="text-lg font-bold">{TAB_TITLES[activeTab]}</h1>
+                <p className="text-xs text-muted-foreground">ApexMind AI Prospecting Agent</p>
               </div>
             </div>
 
             <div className="flex items-center gap-2">
               <div className="hidden items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-3 py-1.5 sm:flex">
                 <Zap className="h-3.5 w-3.5 text-primary" />
-                <span className="text-xs font-medium text-primary">{t('header.aiPowered')}</span>
+                <span className="text-xs font-medium text-primary">AI Powered</span>
               </div>
             </div>
           </div>
@@ -94,7 +86,17 @@ export default function Home() {
 
         {/* Page Content */}
         <div className="p-4 sm:p-6">
-          {renderContent()}
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeTab}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.2 }}
+            >
+              {renderContent()}
+            </motion.div>
+          </AnimatePresence>
         </div>
       </main>
     </div>

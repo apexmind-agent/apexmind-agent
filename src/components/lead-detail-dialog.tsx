@@ -195,14 +195,14 @@ export function LeadDetailDialog({ leadId, open, onOpenChange }: LeadDetailDialo
 
               <TabsContent value="contacts" className="mt-3">
                 <div className="space-y-2">
-                  {lead.contacts?.length > 0 ? lead.contacts.map((contact: { id: string; name: string; title: string; email?: string; emailValidated?: boolean }) => (
+                  {lead.contacts?.length > 0 ? lead.contacts.map((contact: { id: string; name: string; title: string; email: string; emailValidated: boolean }) => (
                     <div key={contact.id} className="flex items-center justify-between rounded-lg border border-border/30 bg-muted/20 p-3">
                       <div>
                         <p className="text-sm font-medium">{contact.name}</p>
                         <p className="text-xs text-muted-foreground">{contact.title}</p>
                       </div>
                       <div className="text-right">
-                        <p className="text-xs text-muted-foreground">{contact.email || 'N/A'}</p>
+                        <p className="text-xs text-muted-foreground">{contact.email}</p>
                         {contact.emailValidated && (
                           <Badge variant="outline" className="text-[10px] text-emerald-400 border-emerald-500/30">Validated</Badge>
                         )}
@@ -216,14 +216,14 @@ export function LeadDetailDialog({ leadId, open, onOpenChange }: LeadDetailDialo
 
               <TabsContent value="emails" className="mt-3">
                 <div className="space-y-2 max-h-64 overflow-y-auto">
-                  {lead.emails?.length > 0 ? lead.emails.map((email: { id: string; subject: string; status: string; type: string; createdAt: string; contact?: { name: string } }) => (
+                  {lead.emails?.length > 0 ? lead.emails.map((email: { id: string; subject: string; status: string; type: string; createdAt: string; contact: { name: string } }) => (
                     <div key={email.id} className="rounded-lg border border-border/30 bg-muted/20 p-3">
                       <div className="flex items-center justify-between">
                         <p className="text-sm font-medium">{email.subject}</p>
                         <Badge variant="outline" className="text-[10px]">{email.status}</Badge>
                       </div>
                       <p className="mt-1 text-xs text-muted-foreground">
-                        To: {email.contact?.name || 'Unknown'} · {email.type} · {format(new Date(email.createdAt), 'MMM d, yyyy')}
+                        To: {email.contact?.name} · {email.type} · {format(new Date(email.createdAt), 'MMM d, yyyy')}
                       </p>
                     </div>
                   )) : (

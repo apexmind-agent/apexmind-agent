@@ -3,11 +3,10 @@
 import { useQuery } from '@tanstack/react-query'
 import { StatCard } from '@/components/stat-card'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Users, Mail, CalendarClock, TrendingUp, AlertTriangle } from 'lucide-react'
+import { Users, Mail, CalendarClock, TrendingUp } from 'lucide-react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts'
 import { Badge } from '@/components/ui/badge'
 import { format } from 'date-fns'
-import { useT } from '@/lib/i18n'
 
 const REGION_COLORS: Record<string, string> = {
   USA: '#D4A853',
@@ -46,19 +45,16 @@ interface StatsData {
     subject: string
     status: string
     createdAt: string
-    lead?: { companyName: string }
-    contact?: { name: string; email?: string }
+    lead: { companyName: string }
+    contact: { name: string }
   }>
-  _setupRequired?: boolean
 }
 
 export function Dashboard() {
-  const { data: stats, isLoading, error } = useQuery<StatsData>({
+  const { data: stats, isLoading } = useQuery<StatsData>({
     queryKey: ['stats'],
     queryFn: () => fetch('/api/stats').then(r => r.json()),
-    retry: 1,
   })
-  const { t } = useT()
 
   if (isLoading) {
     return (
@@ -76,52 +72,33 @@ export function Dashboard() {
     )
   }
 
-  const setupRequired = stats?._setupRequired
-
   return (
     <div className="space-y-6">
-      {/* Setup Warning */}
-      {setupRequired && (
-        <Card className="border-yellow-500/30 bg-yellow-500/5">
-          <CardContent className="flex items-start gap-3 p-4">
-            <AlertTriangle className="h-5 w-5 text-yellow-500 mt-0.5 shrink-0" />
-            <div>
-              <p className="font-semibold text-yellow-500">Configuração Necessária</p>
-              <p className="text-sm text-muted-foreground mt-1">
-                As variáveis de ambiente (DATABASE_URL e OPENROUTER_API_KEY) ainda não foram configuradas no servidor.
-                Vá em <strong>Settings → Environment</strong> na Render e adicione as variáveis.
-                Depois disso, o app vai funcionar completamente.
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
       {/* Stats Cards */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
-          title={t('dashboard.totalLeads')}
+          title="Total Leads"
           value={stats?.totalLeads || 0}
           icon={Users}
-          subtitle={t('dashboard.acrossRegions')}
+          subtitle="Across all regions"
         />
         <StatCard
-          title={t('dashboard.emailsSent')}
+          title="Emails Sent"
           value={stats?.emailsSent || 0}
           icon={Mail}
-          subtitle={t('dashboard.coldOutreach')}
+          subtitle="Cold outreach campaigns"
         />
         <StatCard
-          title={t('dashboard.followupsPending')}
+          title="Follow-ups Pending"
           value={stats?.followUpsPending || 0}
           icon={CalendarClock}
-          subtitle={t('dashboard.scheduledWeek')}
+          subtitle="Scheduled this week"
         />
         <StatCard
-          title={t('dashboard.conversionRate')}
+          title="Conversion Rate"
           value={`${stats?.conversionRate || 0}%`}
           icon={TrendingUp}
-          subtitle={t('dashboard.leadsToInterested')}
+          subtitle="Leads → Interested"
         />
       </div>
 
@@ -130,7 +107,7 @@ export function Dashboard() {
         {/* Leads by Region */}
         <Card className="card-glow border-border/50 bg-card/80 backdrop-blur-sm">
           <CardHeader className="pb-2">
-            <CardTitle className="text-base font-semibold">{t('dashboard.leadsByRegion')}</CardTitle>
+            <CardTitle className="text-base font-semibold">Leads by Region</CardTitle>
           </CardHeader>
           <CardContent>
             {(stats?.leadsByRegion?.length || 0) > 0 ? (
@@ -156,7 +133,7 @@ export function Dashboard() {
               </ResponsiveContainer>
             ) : (
               <div className="flex h-[280px] items-center justify-center text-muted-foreground">
-                {t('dashboard.noDataProspecting')}
+                No data yet. Start prospecting!
               </div>
             )}
           </CardContent>
@@ -165,7 +142,7 @@ export function Dashboard() {
         {/* Leads by Status */}
         <Card className="card-glow border-border/50 bg-card/80 backdrop-blur-sm">
           <CardHeader className="pb-2">
-            <CardTitle className="text-base font-semibold">{t('dashboard.leadsByStatus')}</CardTitle>
+            <CardTitle className="text-base font-semibold">Leads by Status</CardTitle>
           </CardHeader>
           <CardContent>
             {(stats?.leadsByStatus?.length || 0) > 0 ? (
@@ -197,7 +174,7 @@ export function Dashboard() {
               </ResponsiveContainer>
             ) : (
               <div className="flex h-[280px] items-center justify-center text-muted-foreground">
-                {t('dashboard.noDataProspecting')}
+                No data yet. Start prospecting!
               </div>
             )}
           </CardContent>
@@ -209,7 +186,7 @@ export function Dashboard() {
         {/* Recent Leads */}
         <Card className="card-glow border-border/50 bg-card/80 backdrop-blur-sm">
           <CardHeader className="pb-2">
-            <CardTitle className="text-base font-semibold">{t('dashboard.recentLeads')}</CardTitle>
+            <CardTitle className="text-base font-semibold">Recent Leads</CardTitle>
           </CardHeader>
           <CardContent>
             {(stats?.recentLeads?.length || 0) > 0 ? (
@@ -224,7 +201,7 @@ export function Dashboard() {
                       <p className="text-xs text-muted-foreground">{lead.city}, {lead.region}</p>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Badge variant="outline" className="text-[10px]">{lead._count.contacts} {t('dashboard.contacts')}</Badge>
+                      <Badge variant="outline" className="text-[10px]">{lead._count.contacts} contacts</Badge>
                       <Badge
                         className="text-[10px]"
                         style={{
@@ -241,7 +218,7 @@ export function Dashboard() {
               </div>
             ) : (
               <div className="flex h-40 items-center justify-center text-muted-foreground text-sm">
-                {t('dashboard.noLeads')}
+                No leads yet
               </div>
             )}
           </CardContent>
@@ -250,7 +227,7 @@ export function Dashboard() {
         {/* Recent Emails */}
         <Card className="card-glow border-border/50 bg-card/80 backdrop-blur-sm">
           <CardHeader className="pb-2">
-            <CardTitle className="text-base font-semibold">{t('dashboard.recentEmails')}</CardTitle>
+            <CardTitle className="text-base font-semibold">Recent Emails</CardTitle>
           </CardHeader>
           <CardContent>
             {(stats?.recentEmails?.length || 0) > 0 ? (
@@ -263,7 +240,7 @@ export function Dashboard() {
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm font-medium">{email.subject}</p>
                       <p className="text-xs text-muted-foreground">
-                        {email.lead?.companyName || 'Unknown'} · {email.contact?.name || 'Unknown'}
+                        {email.lead.companyName} · {email.contact.name}
                       </p>
                     </div>
                     <div className="ml-2 flex flex-col items-end gap-1">
@@ -286,7 +263,7 @@ export function Dashboard() {
               </div>
             ) : (
               <div className="flex h-40 items-center justify-center text-muted-foreground text-sm">
-                {t('dashboard.noEmails')}
+                No emails yet
               </div>
             )}
           </CardContent>

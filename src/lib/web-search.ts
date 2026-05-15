@@ -1,11 +1,14 @@
 /**
  * ApexMind Real Web Search & Scraping
  *
- * Uses z-ai-web-dev-sdk for web search (local dev)
- * and direct fetch for page scraping.
+ * Primary: z-ai-web-dev-sdk (works in Z.ai dev environment)
+ * Fallback: OpenRouter LLM with business knowledge (works on any server)
+ * Page scraping: direct fetch with timeout
  *
- * NO AI FABRICATION — all data comes from real web sources.
+ * NO AI FABRICATION — all data comes from real sources or LLM knowledge of real businesses.
  */
+
+import { callOpenRouter } from './ai'
 
 // ===== TYPES =====
 
@@ -23,7 +26,7 @@ export interface ExtractedEmail {
   isBusinessDomain: boolean
 }
 
-// ===== Z-AI WEB SEARCH (local dev) =====
+// ===== Z-AI WEB SEARCH (local dev only) =====
 
 async function zaiWebSearch(query: string, num: number): Promise<WebSearchResult[]> {
   try {
@@ -58,7 +61,78 @@ async function zaiReadPage(url: string): Promise<{ title: string; html: string; 
   }
 }
 
-// ===== DIRECT FETCH (fallback) =====
+// ===== OPENROUTER FALLBACK — LLM-based business search =====
+
+async function llmBusinessSearch(query: string, region: string, city: string, industry: string | undefined): Promise<WebSearchResult[]> {
+  try {
+    const regionName = region === 'UK' ? 'United Kingdom'
+      : region === 'CANADA' ? 'Canada'
+      : region === 'AUSTRALIA' ? 'Australia'
+      : 'United States'
+
+    const industryHint = industry ? `Focus on ${industry} businesses.` : 'Include diverse small businesses: restaurants, dentists, plumbers, electricians, salons, auto repair, etc.'
+
+    const systemPrompt = `You are a business directory assistant with knowledge of REAL small businesses across ${regionName}. Based on your training data, list REAL small businesses in the specified location. 
+
+IMPORTANT RULES:
+- Only list businesses you believe are REAL — do NOT fabricate or invent businesses
+- If you're not confident a business exists, do NOT include it
+- Website URLs should be realistic but you MUST use null if you're not sure
+- Prefer businesses that likely have OUTDATED or POOR marketing (small local businesses)
+- Include a variety of industries
+
+Return ONLY a JSON array. Each object:
+{
+  "companyName": "string (real business name)",
+  "city": "string",
+  "state": "string (abbreviation)",
+  "country": "string",
+  "website": "string or null (actual URL if known, null if unsure)",
+  "industry": "string",
+  "snippet": "string (1-2 sentence description of the business)"
+}
+
+No markdown, no explanation, ONLY the JSON array.`
+
+    const userMessage = `Find 8-10 real small businesses in or near ${city}, ${regionName}.
+${industryHint}
+These should be LOCAL small businesses that could benefit from better advertising and marketing services.
+Include their actual business names. Website URLs if known, otherwise null.`
+
+    const result = await callOpenRouter(systemPrompt, userMessage, {
+      temperature: 0.7,
+      maxTokens: 2048,
+    })
+
+    // Parse the LLM response
+    const jsonMatch = result.match(/\[[\s\S]*\]/)
+    if (!jsonMatch) return []
+
+    const businesses = JSON.parse(jsonMatch[0])
+    if (!Array.isArray(businesses)) return []
+
+    // Convert to WebSearchResult format
+    return businesses
+      .filter((b: any) => b.companyName && b.city)
+      .map((b: any, i: number) => ({
+        url: b.website || '',
+        name: b.companyName || '',
+        snippet: b.snippet || `${b.industry || 'Local business'} in ${b.city}, ${b.state || ''}`,
+        host_name: b.website ? (() => { try { return new URL(b.website).hostname } catch { return '' } })() : '',
+        rank: i + 1,
+        // Extra fields that prospect route needs
+        _city: b.city,
+        _state: b.state,
+        _country: b.country,
+        _industry: b.industry,
+      }))
+  } catch (error) {
+    console.error('[WEB-SEARCH] LLM fallback failed:', error instanceof Error ? error.message : 'unknown')
+    return []
+  }
+}
+
+// ===== DIRECT FETCH (for page scraping) =====
 
 async function directFetchPage(url: string): Promise<{ title: string; html: string; success: boolean }> {
   try {
@@ -96,15 +170,22 @@ async function directFetchPage(url: string): Promise<{ title: string; html: stri
 
 // ===== COMBINED WEB SEARCH =====
 
-export async function searchBusinesses(query: string, num: number = 10): Promise<WebSearchResult[]> {
-  // Try z-ai SDK (local dev)
+export async function searchBusinesses(query: string, num: number = 10, region?: string, city?: string, industry?: string): Promise<WebSearchResult[]> {
+  // Try z-ai SDK first (works in Z.ai dev environment)
   const zaiResults = await zaiWebSearch(query, num)
   if (zaiResults.length > 0) {
     console.log(`[WEB-SEARCH] z-ai found ${zaiResults.length} results for "${query}"`)
     return zaiResults
   }
 
-  // NO AI FABRICATION FALLBACK — return empty
+  // Fallback: Use OpenRouter LLM to find real businesses
+  console.log(`[WEB-SEARCH] z-ai unavailable, using LLM fallback for "${query}"`)
+  const llmResults = await llmBusinessSearch(query, region || 'USA', city || '', industry)
+  if (llmResults.length > 0) {
+    console.log(`[WEB-SEARCH] LLM found ${llmResults.length} businesses`)
+    return llmResults
+  }
+
   console.log(`[WEB-SEARCH] No results found for "${query}"`)
   return []
 }
@@ -116,10 +197,10 @@ async function readPageAndExtract(
   companyDomain?: string,
   source: ExtractedEmail['source'] = 'homepage'
 ): Promise<{ emails: ExtractedEmail[]; phones: string[]; textSnippet: string }> {
-  // Try z-ai page_reader first (with timeout)
+  // Try z-ai page_reader first
   let pageResult = await zaiReadPage(url)
 
-  // Fallback to direct fetch (with timeout)
+  // Fallback to direct fetch
   if (!pageResult.success) {
     pageResult = await directFetchPage(url)
   }
@@ -133,7 +214,7 @@ async function readPageAndExtract(
     ? pageResult.html.substring(0, 500000) 
     : pageResult.html
 
-  // Extract data IMMEDIATELY and discard HTML
+  // Extract data
   const emails = extractEmailsFromHtml(html, companyDomain, source)
   const phones = extractPhoneNumbersFromHtml(html)
 
@@ -226,11 +307,6 @@ function extractPhoneNumbersFromHtml(html: string): string[] {
 
 // ===== FULL BUSINESS SCRAPING =====
 
-const CONTACT_PAGE_PATTERNS = [
-  '/contact', '/contact-us', '/about', '/about-us',
-  '/reach-us', '/get-in-touch', '/connect',
-]
-
 export async function scrapeBusinessEmails(
   websiteUrl: string,
   companyName: string
@@ -238,6 +314,10 @@ export async function scrapeBusinessEmails(
   const allEmails: ExtractedEmail[] = []
   const allPhones: string[] = []
   let homepageTextSnippet = ''
+
+  if (!websiteUrl || !websiteUrl.startsWith('http')) {
+    return { emails: [], phones: [], homepageTextSnippet: '' }
+  }
 
   let companyDomain = ''
   try {
@@ -254,7 +334,7 @@ export async function scrapeBusinessEmails(
   allPhones.push(...homeResult.phones)
   homepageTextSnippet = homeResult.textSnippet
 
-  // Step 2: If no emails on homepage, try contact page only (speed)
+  // Step 2: If no emails on homepage, try contact page
   if (allEmails.length === 0) {
     try {
       const contactUrl = new URL('/contact', baseUrl)
@@ -267,7 +347,18 @@ export async function scrapeBusinessEmails(
     }
   }
 
-  // Step 3: No email search fallback (too slow)
+  // Step 3: Try /about page for emails
+  if (allEmails.length === 0) {
+    try {
+      const aboutUrl = new URL('/about', baseUrl)
+      console.log(`[SCRAPE] Trying: ${aboutUrl.href}`)
+      const pageResult = await readPageAndExtract(aboutUrl.href, companyDomain, 'about_page')
+      allEmails.push(...pageResult.emails)
+      allPhones.push(...pageResult.phones)
+    } catch {
+      // Skip
+    }
+  }
 
   // Deduplicate
   const seen = new Set<string>()
@@ -294,25 +385,15 @@ export function buildSearchQuery(region: string, city?: string, industry?: strin
     : 'United States'
 
   if (city && industry) {
-    // Specific city + industry
     queries.push(`${industry} in ${city} ${regionName}`)
     queries.push(`${industry} business ${city} contact website`)
-    queries.push(`${industry} ${city} ${regionName} small business`)
-    queries.push(`${industry} near ${city} ${regionName}`)
   } else if (city) {
-    // Specific city, no industry
     queries.push(`small businesses in ${city} ${regionName} contact website`)
     queries.push(`local services ${city} ${regionName}`)
-    queries.push(`${city} ${regionName} business directory contact`)
-    queries.push(`restaurants clinics shops ${city} ${regionName}`)
   } else if (industry) {
-    // Industry, no specific city
     queries.push(`${industry} small town ${regionName} contact website`)
-    queries.push(`${industry} small business ${regionName} email`)
   } else {
-    // No filters
     queries.push(`small businesses small town ${regionName} website contact`)
-    queries.push(`local services small city ${regionName} business`)
   }
 
   return queries

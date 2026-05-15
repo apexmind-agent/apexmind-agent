@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Card, CardContent } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
@@ -14,7 +14,6 @@ import { Textarea } from '@/components/ui/textarea'
 import { Users, Search, Plus, Eye, Globe, Star, MessageSquare, Loader2 } from 'lucide-react'
 import { LeadDetailDialog } from '@/components/lead-detail-dialog'
 import { toast } from 'sonner'
-import { useT } from '@/lib/i18n'
 
 const STATUS_OPTIONS = ['ALL', 'NEW', 'CONTACTED', 'FOLLOW_UP', 'INTERESTED', 'NOT_INTERESTED', 'BOUNCED']
 const REGION_OPTIONS = ['ALL', 'USA', 'UK', 'CANADA', 'AUSTRALIA']
@@ -58,7 +57,6 @@ export function LeadsDatabase() {
   })
 
   const queryClient = useQueryClient()
-  const { t } = useT()
 
   const { data, isLoading } = useQuery({
     queryKey: ['leads', search, statusFilter, regionFilter, page],
@@ -98,10 +96,10 @@ export function LeadsDatabase() {
         region: 'USA',
         notes: '',
       })
-      toast.success(t('leads.leadCreated'))
+      toast.success('Lead created successfully')
     },
     onError: () => {
-      toast.error(t('leads.leadFailed'))
+      toast.error('Failed to create lead')
     },
   })
 
@@ -120,11 +118,11 @@ export function LeadsDatabase() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-2">
           <Users className="h-5 w-5 text-primary" />
-          <h2 className="text-lg font-semibold">{t('leads.database')}</h2>
-          <Badge variant="secondary" className="text-xs">{total} {t('leads.total')}</Badge>
+          <h2 className="text-lg font-semibold">Leads Database</h2>
+          <Badge variant="secondary" className="text-xs">{total} total</Badge>
         </div>
         <Button onClick={() => setAddOpen(true)} size="sm" className="gold-gradient text-black font-semibold hover:opacity-90">
-          <Plus className="mr-1 h-4 w-4" /> {t('leads.addLead')}
+          <Plus className="mr-1 h-4 w-4" /> Add Lead
         </Button>
       </div>
 
@@ -135,7 +133,7 @@ export function LeadsDatabase() {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
-                placeholder={t('leads.searchLeads')}
+                placeholder="Search leads..."
                 value={search}
                 onChange={(e) => { setSearch(e.target.value); setPage(1) }}
                 className="pl-9"
@@ -143,21 +141,21 @@ export function LeadsDatabase() {
             </div>
             <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v); setPage(1) }}>
               <SelectTrigger className="w-full sm:w-40">
-                <SelectValue placeholder={t('leads.status')} />
+                <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
                 {STATUS_OPTIONS.map(s => (
-                  <SelectItem key={s} value={s}>{s === 'ALL' ? t('leads.allStatuses') : s}</SelectItem>
+                  <SelectItem key={s} value={s}>{s === 'ALL' ? 'All Statuses' : s}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
             <Select value={regionFilter} onValueChange={(v) => { setRegionFilter(v); setPage(1) }}>
               <SelectTrigger className="w-full sm:w-40">
-                <SelectValue placeholder={t('leads.region')} />
+                <SelectValue placeholder="Region" />
               </SelectTrigger>
               <SelectContent>
                 {REGION_OPTIONS.map(r => (
-                  <SelectItem key={r} value={r}>{r === 'ALL' ? t('leads.allRegions') : r}</SelectItem>
+                  <SelectItem key={r} value={r}>{r === 'ALL' ? 'All Regions' : r}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -177,12 +175,12 @@ export function LeadsDatabase() {
               <Table>
                 <TableHeader>
                   <TableRow className="border-border/30 hover:bg-transparent">
-                    <TableHead className="text-xs font-semibold text-muted-foreground">{t('leads.company')}</TableHead>
-                    <TableHead className="text-xs font-semibold text-muted-foreground">{t('leads.location')}</TableHead>
-                    <TableHead className="text-xs font-semibold text-muted-foreground">{t('leads.industry')}</TableHead>
-                    <TableHead className="text-xs font-semibold text-muted-foreground">{t('leads.scores')}</TableHead>
-                    <TableHead className="text-xs font-semibold text-muted-foreground">{t('leads.status')}</TableHead>
-                    <TableHead className="text-xs font-semibold text-muted-foreground">{t('leads.actions')}</TableHead>
+                    <TableHead className="text-xs font-semibold text-muted-foreground">Company</TableHead>
+                    <TableHead className="text-xs font-semibold text-muted-foreground">Location</TableHead>
+                    <TableHead className="text-xs font-semibold text-muted-foreground">Industry</TableHead>
+                    <TableHead className="text-xs font-semibold text-muted-foreground">Scores</TableHead>
+                    <TableHead className="text-xs font-semibold text-muted-foreground">Status</TableHead>
+                    <TableHead className="text-xs font-semibold text-muted-foreground">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -240,7 +238,7 @@ export function LeadsDatabase() {
                           className="text-xs"
                           onClick={() => handleViewLead(lead.id)}
                         >
-                          <Eye className="mr-1 h-3 w-3" /> {t('leads.view')}
+                          <Eye className="mr-1 h-3 w-3" /> View
                         </Button>
                       </TableCell>
                     </TableRow>
@@ -251,8 +249,8 @@ export function LeadsDatabase() {
           ) : (
             <div className="flex flex-col items-center justify-center py-16">
               <Users className="mb-4 h-12 w-12 text-muted-foreground/40" />
-              <p className="text-muted-foreground">{t('leads.noLeads')}</p>
-              <p className="text-xs text-muted-foreground/70">{t('leads.startOrAdd')}</p>
+              <p className="text-muted-foreground">No leads found</p>
+              <p className="text-xs text-muted-foreground/70">Start prospecting or add a lead manually</p>
             </div>
           )}
         </CardContent>
@@ -267,10 +265,10 @@ export function LeadsDatabase() {
             disabled={page <= 1}
             onClick={() => setPage(p => p - 1)}
           >
-            {t('leads.previous')}
+            Previous
           </Button>
           <span className="text-sm text-muted-foreground">
-            {t('leads.page')} {page} {t('leads.of')} {totalPages}
+            Page {page} of {totalPages}
           </span>
           <Button
             size="sm"
@@ -278,7 +276,7 @@ export function LeadsDatabase() {
             disabled={page >= totalPages}
             onClick={() => setPage(p => p + 1)}
           >
-            {t('leads.next')}
+            Next
           </Button>
         </div>
       )}
@@ -294,12 +292,12 @@ export function LeadsDatabase() {
       <Dialog open={addOpen} onOpenChange={setAddOpen}>
         <DialogContent className="bg-card border-border/50 max-h-[85vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="gold-text">{t('leads.addNewLead')}</DialogTitle>
+            <DialogTitle className="gold-text">Add New Lead</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label className="text-sm">{t('leads.companyName')} *</Label>
+                <Label className="text-sm">Company Name *</Label>
                 <Input
                   value={newLead.companyName}
                   onChange={(e) => setNewLead({ ...newLead, companyName: e.target.value })}
@@ -307,7 +305,7 @@ export function LeadsDatabase() {
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-sm">{t('leads.city')} *</Label>
+                <Label className="text-sm">City *</Label>
                 <Input
                   value={newLead.city}
                   onChange={(e) => setNewLead({ ...newLead, city: e.target.value })}
@@ -315,7 +313,7 @@ export function LeadsDatabase() {
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-sm">{t('leads.state')}</Label>
+                <Label className="text-sm">State</Label>
                 <Input
                   value={newLead.state}
                   onChange={(e) => setNewLead({ ...newLead, state: e.target.value })}
@@ -323,7 +321,7 @@ export function LeadsDatabase() {
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-sm">{t('leads.country')}</Label>
+                <Label className="text-sm">Country</Label>
                 <Input
                   value={newLead.country}
                   onChange={(e) => setNewLead({ ...newLead, country: e.target.value })}
@@ -331,7 +329,7 @@ export function LeadsDatabase() {
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-sm">{t('leads.website')}</Label>
+                <Label className="text-sm">Website</Label>
                 <Input
                   value={newLead.website}
                   onChange={(e) => setNewLead({ ...newLead, website: e.target.value })}
@@ -339,7 +337,7 @@ export function LeadsDatabase() {
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-sm">{t('leads.industry')}</Label>
+                <Label className="text-sm">Industry</Label>
                 <Input
                   value={newLead.industry}
                   onChange={(e) => setNewLead({ ...newLead, industry: e.target.value })}
@@ -347,7 +345,7 @@ export function LeadsDatabase() {
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-sm">{t('leads.companySize')}</Label>
+                <Label className="text-sm">Company Size</Label>
                 <Input
                   value={newLead.companySize}
                   onChange={(e) => setNewLead({ ...newLead, companySize: e.target.value })}
@@ -355,7 +353,7 @@ export function LeadsDatabase() {
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-sm">{t('leads.region')}</Label>
+                <Label className="text-sm">Region</Label>
                 <Select value={newLead.region} onValueChange={(v) => setNewLead({ ...newLead, region: v })}>
                   <SelectTrigger>
                     <SelectValue />
@@ -370,24 +368,24 @@ export function LeadsDatabase() {
               </div>
             </div>
             <div className="space-y-2">
-              <Label className="text-sm">{t('leads.notes')}</Label>
+              <Label className="text-sm">Notes</Label>
               <Textarea
                 value={newLead.notes}
                 onChange={(e) => setNewLead({ ...newLead, notes: e.target.value })}
-                placeholder={t('followups.notesPlaceholder')}
+                placeholder="Additional notes about this lead..."
                 rows={3}
               />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setAddOpen(false)}>{t('leads.cancel')}</Button>
+            <Button variant="outline" onClick={() => setAddOpen(false)}>Cancel</Button>
             <Button
               onClick={() => createMutation.mutate(newLead)}
               disabled={!newLead.companyName || !newLead.city || createMutation.isPending}
               className="gold-gradient text-black font-semibold hover:opacity-90"
             >
               {createMutation.isPending ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : null}
-              {t('leads.createLead')}
+              Create Lead
             </Button>
           </DialogFooter>
         </DialogContent>

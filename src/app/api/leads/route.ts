@@ -3,10 +3,6 @@ import { db } from '@/lib/db'
 
 export async function GET(request: NextRequest) {
   try {
-    if (!process.env.DATABASE_URL) {
-      return NextResponse.json({ leads: [], total: 0, page: 1, limit: 20, _setupRequired: true })
-    }
-
     const { searchParams } = new URL(request.url)
     const region = searchParams.get('region')
     const status = searchParams.get('status')
@@ -48,16 +44,12 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ leads, total, page, limit })
   } catch (error) {
     console.error('Leads fetch error:', error)
-    return NextResponse.json({ leads: [], total: 0, page: 1, limit: 20 })
+    return NextResponse.json({ error: 'Failed to fetch leads' }, { status: 500 })
   }
 }
 
 export async function POST(request: NextRequest) {
   try {
-    if (!process.env.DATABASE_URL) {
-      return NextResponse.json({ error: 'Database not configured. Add DATABASE_URL environment variable.' }, { status: 503 })
-    }
-
     const body = await request.json()
     const lead = await db.lead.create({
       data: {

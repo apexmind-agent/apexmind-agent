@@ -3,20 +3,6 @@ import { db } from '@/lib/db'
 
 export async function GET() {
   try {
-    if (!process.env.DATABASE_URL) {
-      return NextResponse.json({
-        totalLeads: 0,
-        emailsSent: 0,
-        followUpsPending: 0,
-        conversionRate: 0,
-        leadsByRegion: [],
-        leadsByStatus: [],
-        recentLeads: [],
-        recentEmails: [],
-        _setupRequired: true,
-      })
-    }
-
     const [
       totalLeads,
       emailsSent,
@@ -34,7 +20,7 @@ export async function GET() {
       db.lead.groupBy({ by: ['region'], _count: { region: true } }),
       db.lead.groupBy({ by: ['status'], _count: { status: true } }),
       db.lead.findMany({ take: 5, orderBy: { createdAt: 'desc' }, include: { _count: { select: { contacts: true, emails: true } } } }),
-      db.email.findMany({ take: 5, orderBy: { createdAt: 'desc' }, include: { lead: { select: { companyName: true } }, contact: { select: { name: true, email: true } } } }),
+      db.email.findMany({ take: 5, orderBy: { createdAt: 'desc' }, include: { lead: { select: { companyName: true } }, contact: { select: { name: true } } } }),
     ])
 
     const conversionRate = totalLeads > 0 ? ((leadsInterested / totalLeads) * 100).toFixed(1) : '0'
@@ -51,15 +37,6 @@ export async function GET() {
     })
   } catch (error) {
     console.error('Stats fetch error:', error)
-    return NextResponse.json({
-      totalLeads: 0,
-      emailsSent: 0,
-      followUpsPending: 0,
-      conversionRate: 0,
-      leadsByRegion: [],
-      leadsByStatus: [],
-      recentLeads: [],
-      recentEmails: [],
-    })
+    return NextResponse.json({ error: 'Failed to fetch stats' }, { status: 500 })
   }
 }

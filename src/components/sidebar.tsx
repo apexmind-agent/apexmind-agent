@@ -10,12 +10,10 @@ import {
   Zap,
   ChevronLeft,
   ChevronRight,
-  Globe,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { useState } from 'react'
-import { useLanguageStore, useT } from '@/lib/i18n'
 
 interface SidebarProps {
   activeTab: string
@@ -23,22 +21,16 @@ interface SidebarProps {
 }
 
 const navItems = [
-  { id: 'dashboard', labelKey: 'sidebar.dashboard', icon: LayoutDashboard },
-  { id: 'prospecting', labelKey: 'sidebar.prospecting', icon: Search },
-  { id: 'leads', labelKey: 'sidebar.leads', icon: Users },
-  { id: 'emails', labelKey: 'sidebar.emails', icon: Mail },
-  { id: 'followups', labelKey: 'sidebar.followups', icon: CalendarClock },
-  { id: 'sent', labelKey: 'sidebar.sent', icon: Send },
+  { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { id: 'prospecting', label: 'Prospecting', icon: Search },
+  { id: 'leads', label: 'Leads Database', icon: Users },
+  { id: 'emails', label: 'Email Generator', icon: Mail },
+  { id: 'followups', label: 'Follow-ups', icon: CalendarClock },
+  { id: 'sent', label: 'Sent Emails', icon: Send },
 ]
 
 export function Sidebar({ activeTab, onTabChange }: SidebarProps) {
   const [collapsed, setCollapsed] = useState(false)
-  const { language, setLanguage } = useLanguageStore()
-  const { t } = useT()
-
-  const toggleLanguage = () => {
-    setLanguage(language === 'pt-BR' ? 'en' : 'pt-BR')
-  }
 
   return (
     <aside
@@ -55,7 +47,7 @@ export function Sidebar({ activeTab, onTabChange }: SidebarProps) {
         {!collapsed && (
           <div className="overflow-hidden">
             <h1 className="text-lg font-bold gold-text">ApexMind</h1>
-            <p className="text-[10px] text-muted-foreground">{t('sidebar.aiAgent')}</p>
+            <p className="text-[10px] text-muted-foreground">AI Prospecting Agent</p>
           </div>
         )}
       </div>
@@ -77,29 +69,11 @@ export function Sidebar({ activeTab, onTabChange }: SidebarProps) {
               )}
             >
               <Icon className={cn('h-5 w-5 shrink-0', isActive && 'text-primary')} />
-              {!collapsed && <span>{t(item.labelKey)}</span>}
+              {!collapsed && <span>{item.label}</span>}
             </button>
           )
         })}
       </nav>
-
-      {/* Language Toggle */}
-      <div className="border-t border-border/50 p-2">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={toggleLanguage}
-          className={cn('w-full', collapsed ? 'justify-center' : 'justify-start')}
-          title={t('sidebar.language')}
-        >
-          <Globe className="h-4 w-4 shrink-0 text-primary" />
-          {!collapsed && (
-            <span className="ml-2 text-sm">
-              {language === 'pt-BR' ? '🇧🇷 PT-BR' : '🇺🇸 EN'}
-            </span>
-          )}
-        </Button>
-      </div>
 
       {/* Collapse button */}
       <div className="border-t border-border/50 p-2">
