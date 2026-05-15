@@ -34,8 +34,10 @@ function getApiKey(): string {
 }
 
 const MODELS = [
-  'meta-llama/llama-3.1-8b-instruct',
+  'google/gemma-2-9b-it:free',
+  'meta-llama/llama-3.1-8b-instruct:free',
   'meta-llama/llama-3.3-70b-instruct',
+  'meta-llama/llama-3.1-8b-instruct',
   'google/gemma-2-9b-it',
 ]
 
