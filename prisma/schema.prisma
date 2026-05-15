@@ -1,0 +1,89 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Lead {
+  id                String   @id @default(cuid())
+  companyName       String
+  address           String?
+  city              String
+  state             String?
+  country           String   @default("USA")
+  website           String?
+  industry          String?
+  companySize       String?
+  websiteScore      Int?
+  brandScore        Int?
+  communicationScore Int?
+  marketingNeed     String?
+  hasAwards         Boolean  @default(false)
+  awardDetails      String?
+  notes             String?
+  status            String   @default("NEW")
+  region            String   @default("USA")
+  contacts          Contact[]
+  emails            Email[]
+  followUps         FollowUp[]
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+model Contact {
+  id             String   @id @default(cuid())
+  leadId         String
+  lead           Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  name           String
+  title          String
+  email          String
+  emailValidated Boolean  @default(false)
+  emailBounced   Boolean  @default(false)
+  emails         Email[]
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model Email {
+  id               String   @id @default(cuid())
+  leadId           String
+  lead             Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  contactId        String
+  contact          Contact  @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  subject          String
+  body             String
+  type             String   @default("INITIAL")
+  status           String   @default("DRAFT")
+  followUpSequence Int      @default(0)
+  sentAt           DateTime?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+model ProspectingSession {
+  id          String    @id @default(cuid())
+  searchQuery String
+  region      String    @default("USA")
+  city        String?
+  industry    String?
+  status      String    @default("RUNNING")
+  leadsFound  Int       @default(0)
+  results     String?
+  createdAt   DateTime  @default(now())
+  completedAt DateTime?
+}
+
+model FollowUp {
+  id            String   @id @default(cuid())
+  leadId        String
+  lead          Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  emailId       String?
+  scheduledDate DateTime
+  status        String   @default("PENDING")
+  notes         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
