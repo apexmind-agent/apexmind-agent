@@ -36,19 +36,19 @@ export default function Home() {
   const renderContent = () => {
     switch (activeTab) {
       case 'dashboard':
-        return <Dashboard />
+        return <ErrorBoundary><Dashboard /></ErrorBoundary>
       case 'prospecting':
-        return <Prospecting />
+        return <ErrorBoundary><Prospecting /></ErrorBoundary>
       case 'leads':
-        return <LeadsDatabase />
+        return <ErrorBoundary><LeadsDatabase /></ErrorBoundary>
       case 'emails':
-        return <EmailGenerator />
+        return <ErrorBoundary><EmailGenerator /></ErrorBoundary>
       case 'followups':
-        return <FollowUps />
+        return <ErrorBoundary><FollowUps /></ErrorBoundary>
       case 'sent':
-        return <SentEmails />
+        return <ErrorBoundary><SentEmails /></ErrorBoundary>
       default:
-        return <Dashboard />
+        return <ErrorBoundary><Dashboard /></ErrorBoundary>
     }
   }
 
@@ -94,9 +94,7 @@ export default function Home() {
 
         {/* Page Content */}
         <div className="p-4 sm:p-6">
-          <ErrorBoundary>
-            {renderContent()}
-          </ErrorBoundary>
+          {renderContent()}
         </div>
       </main>
     </div>

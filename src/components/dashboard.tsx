@@ -46,8 +46,8 @@ interface StatsData {
     subject: string
     status: string
     createdAt: string
-    lead: { companyName: string }
-    contact: { name: string }
+    lead?: { companyName: string }
+    contact?: { name: string; email?: string }
   }>
   _setupRequired?: boolean
 }
@@ -263,7 +263,7 @@ export function Dashboard() {
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm font-medium">{email.subject}</p>
                       <p className="text-xs text-muted-foreground">
-                        {email.lead.companyName} · {email.contact.name}
+                        {email.lead?.companyName || 'Unknown'} · {email.contact?.name || 'Unknown'}
                       </p>
                     </div>
                     <div className="ml-2 flex flex-col items-end gap-1">

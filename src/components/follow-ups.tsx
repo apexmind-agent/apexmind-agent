@@ -136,7 +136,7 @@ export function FollowUps() {
             scheduledDate: string;
             status: string;
             notes: string | null;
-            lead: { companyName: string; city: string; region: string };
+            lead?: { companyName: string; city: string; region: string };
           }) => {
             const config = STATUS_CONFIG[fu.status] || STATUS_CONFIG.PENDING
             const Icon = config.icon
@@ -156,9 +156,9 @@ export function FollowUps() {
                         <Icon className={`h-4 w-4 ${config.color.split(' ')[1]}`} />
                       </div>
                       <div>
-                        <h4 className="font-semibold">{fu.lead.companyName}</h4>
+                        <h4 className="font-semibold">{fu.lead?.companyName || 'Unknown'}</h4>
                         <p className="text-sm text-muted-foreground">
-                          {fu.lead.city}, {fu.lead.region}
+                          {fu.lead?.city || ''}, {fu.lead?.region || ''}
                         </p>
                         <div className="mt-1 flex items-center gap-2">
                           <span className="text-xs text-muted-foreground">

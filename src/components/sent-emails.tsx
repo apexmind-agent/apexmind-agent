@@ -39,8 +39,8 @@ interface EmailData {
   createdAt: string
   sentAt: string | null
   contactEmail?: string
-  lead: { companyName: string; city: string }
-  contact: { name: string; title: string; email?: string }
+  lead?: { companyName: string; city: string; region?: string }
+  contact?: { name: string; title: string; email?: string }
 }
 
 export function SentEmails() {
@@ -271,11 +271,11 @@ export function SentEmails() {
                 <TableBody>
                   {emails.map((email: EmailData) => (
                     <TableRow key={email.id} className="border-border/20 hover:bg-muted/30">
-                      <TableCell className="text-sm font-medium">{email.lead.companyName}</TableCell>
+                      <TableCell className="text-sm font-medium">{email.lead?.companyName || 'Unknown'}</TableCell>
                       <TableCell>
                         <div>
-                          <p className="text-sm">{email.contact.name}</p>
-                          <p className="text-xs text-muted-foreground">{email.contact.title}</p>
+                          <p className="text-sm">{email.contact?.name || 'Unknown'}</p>
+                          <p className="text-xs text-muted-foreground">{email.contact?.title || ''}</p>
                         </div>
                       </TableCell>
                       <TableCell className="max-w-48 truncate text-sm">{email.subject}</TableCell>
@@ -353,8 +353,8 @@ export function SentEmails() {
               <div className="grid gap-2 text-sm">
                 <div>
                   <span className="text-muted-foreground">{t('sent.to')}</span>{' '}
-                  <span className="font-medium">{selectedEmail.contact.name}</span>
-                  <span className="text-muted-foreground"> ({selectedEmail.contact.title})</span>
+                  <span className="font-medium">{selectedEmail.contact?.name || 'Unknown'}</span>
+                  <span className="text-muted-foreground"> ({selectedEmail.contact?.title || 'N/A'})</span>
                 </div>
                 <div>
                   <span className="text-muted-foreground">E-mail:</span>{' '}
@@ -362,7 +362,7 @@ export function SentEmails() {
                 </div>
                 <div>
                   <span className="text-muted-foreground">{t('sent.company')}:</span>{' '}
-                  <span className="font-medium">{selectedEmail.lead.companyName}</span>
+                  <span className="font-medium">{selectedEmail.lead?.companyName || 'Unknown'}</span>
                 </div>
                 <div>
                   <span className="text-muted-foreground">{t('sent.created')}</span>{' '}

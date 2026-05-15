@@ -34,7 +34,7 @@ export async function GET() {
       db.lead.groupBy({ by: ['region'], _count: { region: true } }),
       db.lead.groupBy({ by: ['status'], _count: { status: true } }),
       db.lead.findMany({ take: 5, orderBy: { createdAt: 'desc' }, include: { _count: { select: { contacts: true, emails: true } } } }),
-      db.email.findMany({ take: 5, orderBy: { createdAt: 'desc' }, include: { lead: { select: { companyName: true } }, contact: { select: { name: true } } } }),
+      db.email.findMany({ take: 5, orderBy: { createdAt: 'desc' }, include: { lead: { select: { companyName: true } }, contact: { select: { name: true, email: true } } } }),
     ])
 
     const conversionRate = totalLeads > 0 ? ((leadsInterested / totalLeads) * 100).toFixed(1) : '0'
