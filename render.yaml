@@ -1,0 +1,7 @@
+services:
+  - type: web
+    name: apexmind-agent
+    runtime: node
+    buildCommand: npm run build
+    startCommand: npm run start
+    plan: free
